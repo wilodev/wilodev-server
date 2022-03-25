@@ -1,0 +1,33 @@
+version: "3.8"
+# Lanzamos el servicio global de balanceo con Traefik y habilitamos el https por defecto
+services:
+  traefik:
+    container_name: "${PROJECT_NAME}_${TRAEFIK_TAG}" #nombre del Contendor
+    image: traefik:${TRAEFIK_VERSION} # Imagen usada desde dockerHub / Imagen oficial
+    labels:
+      - "traefik.http.routers.api.rule=Host(`${TRAEFIK_URL}.${PROJECT_BASE_URL}`)" # Url con la cual accederemos al servicio
+      - "traefik.http.routers.api.service=api@internal" # Comando para habilitar el acceso interno del mismo
+      - "traefik.http.routers.api.middlewares=auth" # Activamos el servicio de autenticación con un middleware
+      - "traefik.http.middlewares.auth.basicauth.users=${USER_PASSWORD}" # Damos el usuario y contraseña para acceder al dashboard
+      - "traefik.http.routers.${PROJECT_NAME}_${TRAEFIK_URL}.entrypoints=websecure" # Entry Point por donde ingresan la peticiones
+    ports:
+      - 80:80 # Puerto de comunicación no seguro
+      - 443:443 # Puerto de comunicación seguro
+    volumes:
+      - ./config/certs/:/etc/certs/ # Directorio con los certificados
+      - /var/run/docker.sock:/var/run/docker.sock # Volumen para el rastreo de los servicios conectados a docker
+      - ./config/traefik.yml:/traefik.yml # Archivo de configuración de traefik
+      #- ./config/acme.json:/acme.json # Archivo de configuración de https Descomentar si se quiere usar Acme con un dominio real
+      - ./config/traefik.log:/traefik.log # Archivo para el registro de logs
+      - ./config/config.yml:/config.yml # Archivo de la configuración de los certificados y otras acciones
+
+    networks:
+      server_proxy: #nombre de la red que usaremos en todos los servicios
+
+# Definimos la red como un puente común para estar en el mismo segmento de red todos los contenedores y tener un fácil acceso
+networks:
+  server_proxy:
+    name: server_proxy
+    driver: bridge
+    ipam:
+      driver: default

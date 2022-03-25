@@ -1,0 +1,6 @@
+tls:
+  certificates:
+    - certFile: /etc/certs/certificado_generado.pem
+      keyFile: /etc/certs/certificado_generado-key.pem
+      stores:
+        - default

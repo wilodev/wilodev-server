@@ -1,0 +1,108 @@
+version: "3.8"
+services:
+  # Crear el contenedor de Maria DB
+  mariadb:
+    container_name: "${PROJECT_NAME}_${MARIADB_TAG}" # Nombre del contenedor
+    image: mariadb:$MARIADB_VERSION # Imagen usada desde dockerHub / Imagen oficial
+    # Comandos por defecto cambiamos el tipo de autenticación y el sql_mode para las busquedas agrupadas
+    command: --default-authentication-plugin=mysql_native_password
+      --sql_mode=""
+    # Reincio siempre que de un fallo
+    restart: always
+    # Directorio de trabajo por defecto
+    working_dir: /var/lib/mysql/
+    # Varaibles para la construcción del docker
+    environment:
+      MYSQL_ROOT_PASSWORD: $DB_ROOT_PASSWORD
+      MYSQL_DATABASE: $DB_NAME
+      MYSQL_USER: $DB_USER
+      MYSQL_PASSWORD: $DB_PASSWORD
+    # Añadimos los volumenes para el docker
+    volumes:
+      - ./mysql/etc/:/etc/my.cnf # Asociamos el configurador de mariadb
+      - ./mysql/etc/my.cnf.d/:/etc/my.cnf.d/ # Asociamos el configurador de mariadb
+      - $PATH_BASE/dbServers/mariadb-init:/docker-entrypoint-initdb.d # Place init .sql file(s) here.
+      - $PATH_BASE/dbServers/mariadbData/:/var/lib/mysql # I want to manage volumes manually.
+    # Red Puente
+    networks:
+      server_proxy:
+    # # Se expone los puertos
+    # ports:
+    #   - 3306:3306
+  # Crear el contenedor de Postgres DB
+  postgresdb:
+    container_name: "${PROJECT_NAME}_${POSTGRES_TAG}" # Nombre del contenedor
+    image: postgres:${POSTGRES_VERSION} # Imagen usada desde dockerHub / Imagen oficial
+    # Reincio siempre que de un fallo
+    restart: always
+    tty: true
+    # Varaibles para la construcción del docker
+    environment:
+      POSTGRES_USER: $DB_USER
+      POSTGRES_PASSWORD: $DB_PASSWORD
+    # Añadimos los volumenes para el docker
+    volumes:
+      - $PATH_BASE/dbServers/pgData-init:/docker-entrypoint-initdb.d # Place init .sql file(s) here.
+      - $PATH_BASE/dbServers/pgData:/var/lib/postgresql/data
+    # # Se expone los puertos
+    # ports:
+    #   - 5432:5432
+    # Red Puente
+    networks:
+      server_proxy:
+
+  # Servicios Docker para conectarse a las base de datos
+  # Adminer DDBB Service
+  adminer:
+    container_name: "${PROJECT_NAME}_${ADMINER_TAG}" # Nombre del contenedor
+    image: adminer:${ADMINER_VERSION} # Imagen usada desde dockerHub / Imagen oficial
+    # Se añade la dependencia de la base de datos de mariadb (DefaultMaria), cambiar a pgdb para postgres
+    depends_on:
+      - mariadb
+    # Reiniciamos en caso de error
+    restart: always
+    # # Se expone los puertos
+    # ports:
+    #   - 8285:8080
+    # Añadimos los volumnes para el docker
+    volumes:
+      - ./config/uploads.ini:/usr/local/etc/php/conf.d/uploads.ini
+    labels: # Labels para el tráfico por  traefik
+      - "traefik.enable=true"
+      - "traefik.http.routers.${PROJECT_NAME}_${ADMINER_URL}.rule=Host(`${ADMINER_URL}.${PROJECT_BASE_URL}`)"
+      - "traefik.http.routers.${PROJECT_NAME}_${ADMINER_URL}.entrypoints=websecure"
+    # Red Puente
+    networks:
+      server_proxy:
+  # Phpmyadmin DDBB Service
+  phpmyadmin:
+    container_name: "${PROJECT_NAME}_${PHPMYADMIN_TAG}" # Nombre del contenedor
+    image: phpmyadmin:${PHPMYADMIN_VERSION} # Imagen usada desde dockerHub / Imagen oficial
+    # Se añade la dependencia de la base de datos de mariadb (DefaultMaria), cambiar a pgdb para postgres
+    depends_on:
+      - mariadb
+    # Reiniciamos en caso de error
+    restart: always
+    # # Se expone los puertos
+    # ports:
+    #   - 8286:80
+    # Varaibles para la construcción del docker
+    environment:
+      PMA_HOST: $DB_HOST
+      MYSQL_ROOT_PASSWORD: $DB_PASSWORD
+      # Añadimos los volumnes para el docker
+    volumes:
+      - ./config/uploads.ini:/usr/local/etc/php/conf.d/uploads.ini
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.${PROJECT_NAME}_${PHPMYADMIN_URL}.rule=Host(`${PHPMYADMIN_URL}.${PROJECT_BASE_URL}`)"
+      - "traefik.http.routers.${PROJECT_NAME}_${PHPMYADMIN_URL}.entrypoints=websecure"
+    # Red Puente
+    networks:
+      server_proxy:
+
+# Red Puente
+networks:
+  server_proxy:
+    name: server_proxy
+    driver: bridge

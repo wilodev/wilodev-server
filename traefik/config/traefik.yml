@@ -1,0 +1,45 @@
+# Acceso al Api si ponemos en true damos la opción de no validad la seguridad
+api:
+  insecure: false
+# Acceso a las aplicaciones por los puertos seguros y no seguros
+entryPoints:
+  web:
+    address: :80
+    # http:
+    #   redirections:
+    #     entrypoint:
+    #       to: websecure
+    #       scheme: https
+  websecure:
+    address: :443
+    http:
+      tls: {}
+
+serversTransport:
+  insecureSkipVerify: true
+# Proveedor de tráfico de Docker
+providers:
+  docker:
+    endpoint: "unix:///var/run/docker.sock"
+
+  file:
+    filename: /config.yml
+    watch: true
+
+# Certificados usando acme Descomentar solo si se desea usar con un dominio real
+# certificatesResolvers:
+#   cloudflare:
+#     acme:
+#       email: "wilsonperez.developer@gmail.com"
+#       storage: /acme.json
+#       dnsChallenge:
+#         provider: cloudflare
+#         resolvers:
+#           - "1.1.1.1:53"
+#           - "1.0.0.1:53"
+
+# Logs de Traefik
+log:
+  filePath: "/traefik.log"
+  level: ERROR
+  format: json
