@@ -1,9 +1,9 @@
-# Aplicación en Php 8.1 para Symfony con base Infinyti
+# Aplicación en Php 8.1 para Symfony con base Infinyti que se basa en Wilo Dock
 # Repositorio de Php 8.1
 FROM php:8.1.3RC1-apache-buster
 # Propietario
 LABEL maintainer="wperez@cintanegra.net @wilodev"
-LABEL name="infinyti-server"
+LABEL name="wilode-dock"
 LABEL version="1"
 # Asignar los argumentos
 ARG PROJECT_SY_NAME
