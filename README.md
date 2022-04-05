@@ -1,6 +1,6 @@
 # Configuración de la aplicación.
 
-Para configurar la aplicación, se debe crear un archivo llamado ``env.local`` en cada uno de los directorios (traefik, php, commons) con las variables de entorno que se deseen configurar.
+Para configurar la aplicación, se debe crear un archivo llamado ``env`` en cada uno de los directorios (traefik, php, commons) con las variables de entorno que se deseen configurar.
 
 ## Variables de entorno
 
@@ -37,7 +37,7 @@ Cuando ya tienes configurado todo como en el repositorio de github, debes ejecut
 
 ``cd traefik/config/certs/ && mkcert "*.wilodev.localhost" localhost wilodev.localhost 127.0.0.1 ::1``
 
-Recuerda que el dominio interno es lo que tenemos configurado en el archivo  ``env.local`` en la variables de entorno ``PROJECT_BASE_URL``.
+Recuerda que el dominio interno es lo que tenemos configurado en el archivo  ``env`` en la variables de entorno ``PROJECT_BASE_URL``.
 
 **NOTA: Eliminar el archivo ssl.txt después de generar el certificado.**
 
@@ -59,7 +59,7 @@ Al terminar la construcción del docker podemos ingresar al navegador y verifica
 
 <https://traefik.wilodev.localhost>
 
-Con esta URL nos pedirá un usuario y contraseña que esta en el archivo ``.env.local`` de la carpeta traefik.
+Con esta URL nos pedirá un usuario y contraseña que esta en el archivo ``.env`` de la carpeta traefik.
 
 ### Commons
 
@@ -89,6 +89,26 @@ Al terminar la construcción del docker podemos ingresar al navegador y verifica
 <https://shop.wilodev.localhost>
 
 **NOTA: En la carpeta config podremos cambiar la configuración la cuota de subida, archivo de configuración del apache2, el archivo xdebug y el archivo bashrc, El .bashrc es un script que se ejecuta cada vez que se inicia una nueva sesión de terminal**
+
+### Symfony 6 (Actualizado)
+
+Si deseas crear un proyecto con un symfony 6 y ya tener todo el entorno funcional debes acceder a la carpeta symfony6 y cambiar el archivo ``.env`` con los datos que sean necesarios.
+
+Además debes copiar en la carpeta config tus certificados generados en traefik y borrar el archivo ``ssl.txt`` .
+
+Luego debes editar el archivo app.conf y cambiar el ``server_name`` por el dominio que tengas configurado en el archivo ``.env``.
+Después cambias la ruta de tu proyecto y su prefix, para finalizar cambias el nombre de tus archivos ssl y listo.
+
+``cd symfony6/ && sh wilodev_symfony.sh ``
+
+``docker exec -it NOMBRE_DEL_CONTENEDOR_DOCKER /bin/bash``
+
+``syinit {NOMBRE_DEL_PROYECTO}``
+
+``Opción: Y``
+
+Con esto se tiene un proyecto con symfony 6
+
 
 ## Balancer
 

@@ -1,0 +1,41 @@
+version: "3.8"
+services:
+  app:
+    container_name: "${CONTAINER_NAME}_fpm" # Nombre del contenedor
+    build: # Construción de la imagen custom de php 8.1 desde el archivo Dockerfile en la raiz de este direcortio php8.1
+      context: .
+      dockerfile: ./Dockerfile
+      labels:
+        - com.host.description=${CONTAINER_NAME}_fpm
+      args: # Argumentos de la imagen
+        PROJECT_NAME: ${PROJECT_NAME}
+        GIT_EMAIL: ${GIT_EMAIL}
+        GIT_USERNAME: ${GIT_USERNAME}
+    volumes:
+      - ./config/local.ini:/usr/local/etc/php/conf.d/local.ini # Se habilita la configuración del local
+      - ./config/xdebug.ini:/usr/local/etc/php/conf.d/xdebug.ini # Configuración de xdebug para php
+      - ./config/xdebug.ini:/usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini #Configuración de Xdebug para docker
+      - ./config/error_reporting.ini:/usr/local/etc/php/conf.d/error_reporting.ini # Se habilita los errores
+      - $PATH_BASE/${PROJECT_NAME}/:/var/www/public/$PROJECT_NAME/ # Copiamos la ruta del proyecto
+    networks:
+      server_proxy:
+  web:
+    image: nginx:1.21.6
+    container_name: "${CONTAINER_NAME}_nginx" # Nombre del contenedor
+    restart: unless-stopped
+    tty: true
+    volumes:
+      - ./config/nginx/conf.d/:/etc/nginx/conf.d/ # Se copian las configuraciones de nginx
+      - ./config/ssl/:/etc/nginx/ssl/ # Se copian los certificados SSL
+      - $PATH_BASE/$PROJECT_NAME/:/var/www/public/$PROJECT_NAME/ # Copiamos la ruta del proyecto
+    labels:
+      - traefik.enable=true
+      - "traefik.http.routers.${CONTAINER_NAME}_nginx.rule=Host(`${PROJECT_PREFIX_URL}.${PROJECT_BASE_URL}`)"
+      - "traefik.http.routers.${CONTAINER_NAME}_nginx.entrypoints=websecure"
+    networks:
+      server_proxy:
+# Red Puente
+networks:
+  server_proxy:
+    name: server_proxy
+    driver: bridge
