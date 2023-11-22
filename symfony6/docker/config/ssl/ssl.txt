@@ -1,0 +1,1 @@
+Copiar y pegar aquí los certificados generados en la carpeta traefik

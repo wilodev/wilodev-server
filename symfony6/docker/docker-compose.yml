@@ -1,3 +1,5 @@
+# @format
+
 version: "3.8"
 services:
   app:
@@ -20,7 +22,7 @@ services:
     networks:
       server_proxy:
   web:
-    image: nginx:1.21.6
+    image: nginx:1.25.3
     container_name: "${CONTAINER_NAME}_nginx" # Nombre del contenedor
     restart: unless-stopped
     tty: true

@@ -1,2 +1,6 @@
-.env.*
+!.env.*
 _wildcard.*
+.env
+config.yml
+traefik.log
+.vscode
